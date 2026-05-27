@@ -47,6 +47,14 @@
                         </div>
                     </div>
 
+                    <button id="dashboardToggleBtn" class="btn dashboard-btn" title="Ver Dashboard de Alertas">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 3v16a2 2 0 0 0 2 2h16" stroke-width="2"/>
+                            <path d="M7 14l4-4 4 4 5-5" stroke-width="2"/>
+                        </svg>
+                        Dashboard
+                    </button>
+
                     <button id="clearHistoryBtn" class="btn clear-btn" title="Limpiar conversación">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         Limpiar
@@ -55,33 +63,136 @@
             </div>
         </header>
 
-        <main class="chat-messages" id="chatMessages">
-            <div class="message welcome-message">
-                <strong>Hola. Este es un espacio seguro.</strong>
-                <p>Escribe lo que sientes o piensas. Nuestra IA analizará tu estado emocional de forma privada para brindarte el mejor apoyo posible.</p>
-            </div>
-        </main>
+        <div class="chat-body-wrapper">
+            <div class="chat-workspace">
+                <main class="chat-messages" id="chatMessages">
+                    <div class="message welcome-message">
+                        <strong>Hola. Este es un espacio seguro.</strong>
+                        <p>Escribe lo que sientes o piensas. Nuestra IA analizará tu estado emocional de forma privada para brindarte el mejor apoyo posible.</p>
+                    </div>
+                </main>
 
-        <div class="typing-indicator" id="typingIndicator">
-            <div class="typing-dots">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="typing-dots">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                    <div class="radial-pulse-loader" id="radialLoader" style="display: none;">
+                        <canvas id="pulseCanvas"></canvas>
+                    </div>
+                    <span class="typing-text">Pensando...</span>
+                </div>
+
+                <footer class="chat-input-wrapper">
+                    <div class="input-container">
+                        <input type="text" id="messageInput" placeholder="Escribe aquí tu mensaje..." autocomplete="off">
+                        <button id="sendButton" class="send-btn" title="Enviar">
+                            <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+                        </button>
+                    </div>
+                </footer>
             </div>
-            <div class="radial-pulse-loader" id="radialLoader" style="display: none;">
-                <canvas id="pulseCanvas"></canvas>
-            </div>
-            <span class="typing-text">Pensando...</span>
+
+            <!-- Dashboard de Alertas Sidebar -->
+            <aside class="dashboard-sidebar" id="dashboardSidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title-area">
+                        <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 3v16a2 2 0 0 0 2 2h16"/>
+                            <path d="M7 14l4-4 4 4 5-5"/>
+                        </svg>
+                        <div class="sidebar-title-text">
+                            <h2>Dashboard de Alertas</h2>
+                            <p>Tendencias y niveles de riesgo</p>
+                        </div>
+                    </div>
+                    <button id="closeDashboardBtn" class="close-sidebar-btn" title="Cerrar Dashboard">&times;</button>
+                </div>
+
+                <div class="sidebar-content">
+                    <!-- Widget 1: Estado Actual de Riesgo -->
+                    <div class="dashboard-widget widget-risk-status">
+                        <div class="widget-header">
+                            <h3>Riesgo General Actual</h3>
+                        </div>
+                        <div class="risk-indicator-container">
+                            <div class="risk-glow-ring risk-bajo" id="riskRing">
+                                <div class="risk-glow-pulse"></div>
+                                <span class="risk-level-label" id="riskLevelLabel">Bajo</span>
+                            </div>
+                        </div>
+                        <p class="risk-explanation-text" id="riskExplanationText">No se detectan alertas activas en tu conversación.</p>
+                    </div>
+
+                    <!-- Widget 2: Distribución de Sentimiento -->
+                    <div class="dashboard-widget widget-sentiment">
+                        <div class="widget-header">
+                            <h3>Distribución de Ánimo</h3>
+                        </div>
+                        <div class="sentiment-bars">
+                            <div class="sentiment-bar-item">
+                                <div class="sentiment-bar-label">
+                                    <span>Positivo</span>
+                                    <span id="posPercent">0%</span>
+                                </div>
+                                <div class="progress-track">
+                                    <div class="progress-fill sentiment-positivo" id="posBar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="sentiment-bar-item">
+                                <div class="sentiment-bar-label">
+                                    <span>Neutro</span>
+                                    <span id="neuPercent">0%</span>
+                                </div>
+                                <div class="progress-track">
+                                    <div class="progress-fill sentiment-neutro" id="neuBar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="sentiment-bar-item">
+                                <div class="sentiment-bar-label">
+                                    <span>Negativo</span>
+                                    <span id="negPercent">0%</span>
+                                </div>
+                                <div class="progress-track">
+                                    <div class="progress-fill sentiment-negativo" id="negBar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widget 3: Gráfico de Tendencia Sparkline -->
+                    <div class="dashboard-widget widget-sparkline">
+                        <div class="widget-header">
+                            <h3>Tendencia de Sentimiento</h3>
+                        </div>
+                        <div class="sparkline-container">
+                            <div class="sparkline-empty" id="sparklineEmpty">
+                                <p>Esperando mensajes para trazar tendencia...</p>
+                            </div>
+                            <svg class="sparkline-svg" id="sparklineSvg" viewBox="0 0 260 100" style="display: none;">
+                                <!-- Grid lines -->
+                                <line x1="0" y1="50" x2="260" y2="50" class="sparkline-grid-line" stroke-dasharray="3,3"/>
+                                <path d="" class="sparkline-path-bg" id="sparklinePathBg"/>
+                                <path d="" class="sparkline-path" id="sparklinePath"/>
+                                <g id="sparklinePoints"></g>
+                            </svg>
+                            <div class="sparkline-tooltip" id="sparklineTooltip" style="opacity: 0;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Widget 4: Recomendaciones del Orientador / Bot -->
+                    <div class="dashboard-widget widget-guidance" id="widgetGuidance">
+                        <div class="widget-header">
+                            <h3>Orientación y Apoyo</h3>
+                        </div>
+                        <div class="guidance-content" id="guidanceContent">
+                            <p>Continúa expresando tus pensamientos de manera segura. SentiaGuard analiza tu bienestar para apoyarte.</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
         </div>
-
-        <footer class="chat-input-wrapper">
-            <div class="input-container">
-                <input type="text" id="messageInput" placeholder="Escribe aquí tu mensaje..." autocomplete="off">
-                <button id="sendButton" class="send-btn" title="Enviar">
-                    <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
-                </button>
-            </div>
-        </footer>
     </div>
 
     <script src="/static/js/chat.js"></script>

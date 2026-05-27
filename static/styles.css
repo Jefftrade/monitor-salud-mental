@@ -1070,7 +1070,7 @@ body.light-theme .typing-dots .dot {
     50% { opacity: 1; transform: scale(1.08); }
 }
 
-/* Responsive UI adjustments */
+/* Responsive UI adjustments (Base) */
 @media (max-width: 768px) {
     .chat-header { padding: 16px 20px; }
     .chat-messages { padding: 20px 16px; gap: 20px; }
@@ -1079,4 +1079,519 @@ body.light-theme .typing-dots .dot {
     .metadata { max-width: 90%; }
     .typing-indicator { width: calc(100% - 20px); }
     .accessibility-dropdown { right: -50px; width: 260px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DASHBOARD DE ALERTAS & CONTENEDOR FLEX DE DOBLE COLUMNA
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.chat-body-wrapper {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.chat-workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+}
+
+.dashboard-btn.active {
+    background: rgba(6, 182, 212, 0.12) !important;
+    border-color: rgba(6, 182, 212, 0.35) !important;
+    color: #22d3ee !important;
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.15);
+}
+
+/* Sidebar Contenedor Glassmorphic */
+.dashboard-sidebar {
+    width: 320px;
+    height: 100%;
+    background: rgba(12, 12, 16, 0.85);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-left: 1px solid var(--border-silver);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 95;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.35);
+}
+
+.dashboard-sidebar.active {
+    transform: translateX(0);
+}
+
+/* Sidebar Encabezado */
+.sidebar-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-silver);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(12, 12, 16, 0.4), transparent);
+}
+
+.sidebar-title-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-icon {
+    color: #06b6d4; /* Cian Vibrante */
+    filter: drop-shadow(0 0 6px rgba(6, 182, 212, 0.4));
+}
+
+.sidebar-title-text h2 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f4f4f5;
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+}
+
+.sidebar-title-text p {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+
+.close-sidebar-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+}
+
+.close-sidebar-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    transform: rotate(90deg);
+}
+
+/* Sidebar Contenido & Widgets */
+.sidebar-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.dashboard-widget {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.02), 0 4px 12px rgba(0, 0, 0, 0.12);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashboard-widget:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.04), 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.widget-header h3 {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+/* Widget 1: Indicador de Riesgo */
+.risk-indicator-container {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0 14px 0;
+}
+
+.risk-glow-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.4s ease;
+    z-index: 1;
+}
+
+.risk-glow-pulse {
+    position: absolute;
+    top: -4px; left: -4px; right: -4px; bottom: -4px;
+    border-radius: 50%;
+    opacity: 0.25;
+    z-index: -1;
+}
+
+/* Niveles de Riesgo */
+.risk-glow-ring.risk-bajo {
+    background: rgba(16, 185, 129, 0.08);
+    color: #34d399;
+    border: 3px solid rgba(52, 211, 153, 0.3);
+    box-shadow: 0 0 15px rgba(52, 211, 153, 0.2);
+}
+.risk-glow-ring.risk-bajo .risk-glow-pulse {
+    border: 2px solid #10b981;
+    animation: statusPulse 2s infinite ease-in-out;
+}
+
+.risk-glow-ring.risk-medio {
+    background: rgba(245, 158, 11, 0.08);
+    color: #fbbf24;
+    border: 3px solid rgba(251, 191, 36, 0.3);
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+}
+.risk-glow-ring.risk-medio .risk-glow-pulse {
+    border: 2px solid #f59e0b;
+    animation: statusPulse 1.8s infinite ease-in-out;
+}
+
+.risk-glow-ring.risk-alto {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    border: 3px solid rgba(248, 113, 113, 0.4);
+    box-shadow: 0 0 20px rgba(248, 113, 113, 0.3);
+}
+.risk-glow-ring.risk-alto .risk-glow-pulse {
+    border: 2px solid #ef4444;
+    animation: dangerGlow 1.5s infinite ease-in-out;
+}
+
+.risk-explanation-text {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.45;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+/* Widget 2: Barras de Sentimiento */
+.sentiment-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sentiment-bar-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.sentiment-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 99px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.progress-fill.sentiment-positivo {
+    background: linear-gradient(90deg, #10b981, #34d399);
+    box-shadow: 0 0 8px rgba(52, 211, 153, 0.25);
+}
+
+.progress-fill.sentiment-neutro {
+    background: linear-gradient(90deg, #52525b, #71717a);
+}
+
+.progress-fill.sentiment-negativo {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+    box-shadow: 0 0 8px rgba(248, 113, 113, 0.25);
+}
+
+/* Widget 3: Sparkline Tendencias */
+.sparkline-container {
+    width: 100%;
+    height: 110px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    overflow: visible;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sparkline-empty {
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    text-align: center;
+    padding: 10px;
+    line-height: 1.4;
+}
+
+.sparkline-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    padding: 10px;
+}
+
+.sparkline-grid-line {
+    stroke: rgba(255, 255, 255, 0.04);
+    stroke-width: 1;
+}
+
+.sparkline-path {
+    fill: none;
+    stroke: #06b6d4;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 2px 4px rgba(6, 182, 212, 0.3));
+    transition: all 0.4s ease;
+}
+
+.sparkline-path-bg {
+    fill: rgba(6, 182, 212, 0.06);
+    stroke: none;
+    transition: all 0.4s ease;
+}
+
+.sparkline-point {
+    stroke: var(--bg-dark);
+    stroke-width: 1.5;
+    r: 3.5;
+    cursor: pointer;
+    transition: r 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), fill 0.2s;
+}
+
+.sparkline-point:hover {
+    r: 6;
+    stroke-width: 2;
+    filter: drop-shadow(0 0 5px currentColor);
+}
+
+.sparkline-point.positive { fill: #34d399; color: #34d399; }
+.sparkline-point.neutral { fill: #a1a1aa; color: #a1a1aa; }
+.sparkline-point.negative { fill: #f87171; color: #f87171; }
+
+.sparkline-tooltip {
+    position: absolute;
+    background: rgba(10, 10, 14, 0.96);
+    border: 1px solid var(--border-silver);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.72rem;
+    line-height: 1.35;
+    pointer-events: none;
+    z-index: 105;
+    width: 180px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: translate(-50%, -110%) scale(0.95);
+    backdrop-filter: blur(5px);
+}
+
+/* Widget 4: Guía Clínicas */
+.widget-guidance {
+    border-left: 3px solid #06b6d4;
+    background: rgba(6, 182, 212, 0.01) !important;
+    transition: all 0.3s ease;
+}
+
+.widget-guidance.risk-medio {
+    border-left-color: var(--warning-text);
+    background: rgba(245, 158, 11, 0.01) !important;
+}
+
+.widget-guidance.risk-alto {
+    border-left-color: var(--danger-text);
+    background: rgba(239, 68, 68, 0.015) !important;
+    animation: dangerBorderPulse 2s infinite ease-in-out;
+}
+
+.guidance-content {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.guidance-content strong {
+    color: var(--text-primary);
+}
+
+.guidance-call-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: #ffffff !important;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    margin-top: 12px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.guidance-call-btn:hover {
+    background: linear-gradient(135deg, #ef4444, #f87171);
+    transform: translateY(-1.5px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.45);
+}
+
+.guidance-call-btn svg {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
+}
+
+@keyframes dangerBorderPulse {
+    0%, 100% { border-left-color: rgba(239, 68, 68, 0.8); }
+    50% { border-left-color: rgba(239, 68, 68, 0.25); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SOPORTE PARA TEMA CLARO EN EL DASHBOARD
+   ══════════════════════════════════════════════════════════════════════════ */
+
+body.light-theme .dashboard-sidebar {
+    background: rgba(248, 250, 252, 0.9);
+    border-left-color: rgba(0, 0, 0, 0.06);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .sidebar-header {
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-theme .sidebar-title-text h2 {
+    color: #0f172a;
+}
+
+body.light-theme .dashboard-widget {
+    background: rgba(255, 255, 255, 0.65);
+    border-color: rgba(0, 0, 0, 0.04);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .dashboard-widget:hover {
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 6px 18px rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .progress-track {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .sparkline-container {
+    background: rgba(0, 0, 0, 0.015);
+    border-color: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .sparkline-grid-line {
+    stroke: rgba(0, 0, 0, 0.03);
+}
+
+body.light-theme .sparkline-path {
+    stroke: #0891b2;
+}
+
+body.light-theme .sparkline-path-bg {
+    fill: rgba(8, 145, 178, 0.05);
+}
+
+body.light-theme .sparkline-point {
+    stroke: #ffffff;
+}
+
+body.light-theme .sparkline-tooltip {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .close-sidebar-btn:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DISEÑO RESPONSIVO (DASHBOARD)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 1024px) {
+    /* Integración lado a lado fluida en PC */
+    .chat-body-wrapper.sidebar-open .dashboard-sidebar {
+        /* Desliza y encaja */
+    }
+}
+
+@media (max-width: 1023px) {
+    /* En tabletas y pantallas medianas, actúa como overlay flotante */
+    .dashboard-sidebar {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 310px;
+        z-index: 200;
+    }
+}
+
+@media (max-width: 480px) {
+    /* En móviles pequeños, se expande a pantalla completa */
+    .dashboard-sidebar {
+        width: 100%;
+        border-left: none;
+    }
 }

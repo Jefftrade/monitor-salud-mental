@@ -7,6 +7,7 @@ class ChatBot {
         // Load persisted conversation history on start
         this.loadHistory();
         this.setupWelcomeSpeech();
+        this.initializeDashboard();
     }
 
     initializeElements() {
@@ -16,6 +17,11 @@ class ChatBot {
         this.typingIndicator = document.getElementById('typingIndicator');
         this.clearHistoryBtn = document.getElementById('clearHistoryBtn');
         this.pulseCanvas     = document.getElementById('pulseCanvas');
+        this.dashboardToggleBtn = document.getElementById('dashboardToggleBtn');
+        this.closeDashboardBtn  = document.getElementById('closeDashboardBtn');
+        this.dashboardSidebar  = document.getElementById('dashboardSidebar');
+        this.chatBodyWrapper   = document.querySelector('.chat-body-wrapper');
+        this.messagesHistory = []; // Tracks parsed assistant messages for stats
         this.isTyping        = false;
         this.animationRef    = null;
     }
@@ -117,6 +123,16 @@ class ChatBot {
 
         this.chatMessages.appendChild(div);
         this.scrollToBottom();
+
+        // Push to statistics tracking and update dashboard
+        if (sentiment || risk) {
+            this.messagesHistory.push({
+                text: message,
+                sentiment: sentiment || 'neutro',
+                risk: risk || 'bajo'
+            });
+            this.updateDashboard();
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -175,6 +191,16 @@ class ChatBot {
                 // Mostrar metadata con un fade suave
                 this._appendMetadata(div, sentiment, risk, explanation, true);
                 this.scrollToBottom();
+
+                // Push to statistics tracking and update dashboard
+                if (sentiment || risk) {
+                    this.messagesHistory.push({
+                        text: message,
+                        sentiment: sentiment || 'neutro',
+                        risk: risk || 'bajo'
+                    });
+                    this.updateDashboard();
+                }
             }
         };
 
@@ -345,6 +371,10 @@ class ChatBot {
             await fetch('/api/clear_history', { method: 'POST' });
             const messages = this.chatMessages.querySelectorAll('.message:not(.welcome-message)');
             messages.forEach(m => m.remove());
+            
+            // Clear tracking metrics and reset dashboard
+            this.messagesHistory = [];
+            this.updateDashboard();
         }
     }
 
@@ -480,6 +510,228 @@ class ChatBot {
         };
 
         window.speechSynthesis.speak(utterance);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // DETECCIÓN INTERACTIVA & MÉTODOS DEL DASHBOARD
+    // ══════════════════════════════════════════════════════════════════════════
+
+    initializeDashboard() {
+        if (!this.dashboardToggleBtn) return;
+
+        // Toggle sidebar open/close
+        this.dashboardToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = this.dashboardSidebar.classList.toggle('active');
+            this.dashboardToggleBtn.classList.toggle('active', isOpen);
+            this.chatBodyWrapper.classList.toggle('sidebar-open', isOpen);
+        });
+
+        // Close button in sidebar
+        this.closeDashboardBtn.addEventListener('click', () => {
+            this.dashboardSidebar.classList.remove('active');
+            this.dashboardToggleBtn.classList.remove('active');
+            this.chatBodyWrapper.classList.remove('sidebar-open');
+        });
+
+        // Close sidebar when clicking outside on smaller screens
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 1024) {
+                if (this.dashboardSidebar.classList.contains('active') &&
+                    !this.dashboardSidebar.contains(e.target) &&
+                    !this.dashboardToggleBtn.contains(e.target)) {
+                    this.dashboardSidebar.classList.remove('active');
+                    this.dashboardToggleBtn.classList.remove('active');
+                    this.chatBodyWrapper.classList.remove('sidebar-open');
+                }
+            }
+        });
+        
+        // Initial dashboard rendering with starting values
+        this.updateDashboard();
+    }
+
+    updateDashboard() {
+        const ring = document.getElementById('riskRing');
+        const label = document.getElementById('riskLevelLabel');
+        const explanation = document.getElementById('riskExplanationText');
+        const posP = document.getElementById('posPercent');
+        const neuP = document.getElementById('neuPercent');
+        const negP = document.getElementById('negPercent');
+        const posB = document.getElementById('posBar');
+        const neuB = document.getElementById('neuBar');
+        const negB = document.getElementById('negBar');
+        const spEmpty = document.getElementById('sparklineEmpty');
+        const spSvg = document.getElementById('sparklineSvg');
+        const spPath = document.getElementById('sparklinePath');
+        const spPathBg = document.getElementById('sparklinePathBg');
+        const spPoints = document.getElementById('sparklinePoints');
+        const spTooltip = document.getElementById('sparklineTooltip');
+        const guidance = document.getElementById('widgetGuidance');
+        const guidanceContent = document.getElementById('guidanceContent');
+
+        if (!ring) return; // Verify element exists in DOM
+
+        // 1. Calculate Sentiment Stats
+        let posCount = 0;
+        let neuCount = 0;
+        let negCount = 0;
+        const total = this.messagesHistory.length;
+
+        this.messagesHistory.forEach(m => {
+            if (m.sentiment === 'positivo') posCount++;
+            else if (m.sentiment === 'negativo') negCount++;
+            else neuCount++;
+        });
+
+        const posPct = total > 0 ? Math.round((posCount / total) * 100) : 0;
+        const neuPct = total > 0 ? Math.round((neuCount / total) * 100) : 0;
+        const negPct = total > 0 ? Math.round((negCount / total) * 100) : 0;
+
+        posP.textContent = `${posPct}%`;
+        neuP.textContent = `${neuPct}%`;
+        negP.textContent = `${negPct}%`;
+
+        posB.style.width = `${posPct}%`;
+        neuB.style.width = `${neuPct}%`;
+        negB.style.width = `${negPct}%`;
+
+        // 2. Determine Current Risk Level (using last message or default)
+        const currentRisk = total > 0 ? this.messagesHistory[total - 1].risk : 'bajo';
+        
+        ring.className = `risk-glow-ring risk-${currentRisk}`;
+        label.textContent = currentRisk === 'bajo' ? 'Bajo' : currentRisk === 'medio' ? 'Medio' : 'Alto';
+        
+        if (currentRisk === 'alto') {
+            explanation.textContent = '¡ALERTA! Se han detectado patrones de riesgo emocional alto en tus mensajes. Por favor, busca apoyo.';
+        } else if (currentRisk === 'medio') {
+            explanation.textContent = 'Se detectan niveles de angustia o estrés moderado. Considera tomar un respiro o hablar con alguien.';
+        } else {
+            explanation.textContent = 'No se detectan alertas activas en tu conversación.';
+        }
+
+        // 3. Render Dynamic Sparkline SVG
+        if (total === 0) {
+            spEmpty.style.display = 'block';
+            spSvg.style.display = 'none';
+        } else {
+            spEmpty.style.display = 'none';
+            spSvg.style.display = 'block';
+
+            // Set up SVG gradients if not exist
+            if (!spSvg.querySelector('defs')) {
+                const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+                defs.innerHTML = `
+                    <linearGradient id="sparklineGrad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#06b6d4" />
+                        <stop offset="100%" stop-color="#22d3ee" />
+                    </linearGradient>
+                    <linearGradient id="sparklineAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.3" />
+                        <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0" />
+                    </linearGradient>
+                `;
+                spSvg.insertBefore(defs, spSvg.firstChild);
+            }
+
+            // Map sentiments to Y values: positive=25 (top), neutral=50 (middle), negative=75 (bottom)
+            const points = this.messagesHistory.map((m, idx) => {
+                const startX = 20;
+                const endX = 240;
+                let x = 130; // Center if only 1 item
+                if (total > 1) {
+                    x = startX + (idx * (endX - startX)) / (total - 1);
+                }
+                
+                let y = 50;
+                if (m.sentiment === 'positivo') y = 25;
+                else if (m.sentiment === 'negativo') y = 75;
+
+                return { x, y, sentiment: m.sentiment, text: m.text, index: idx };
+            });
+
+            // Draw line path
+            let d = `M ${points[0].x} ${points[0].y}`;
+            if (total === 1) {
+                // Draw a beautiful horizontal bar if only 1 data point is present
+                d = `M 20 ${points[0].y} L 240 ${points[0].y}`;
+                spPath.setAttribute('d', d);
+                spPathBg.setAttribute('d', `M 20 ${points[0].y} L 240 ${points[0].y} L 240 100 L 20 100 Z`);
+            } else {
+                // Construction of clean smooth Bezier spline
+                for (let i = 1; i < points.length; i++) {
+                    const p0 = points[i - 1];
+                    const p1 = points[i];
+                    const cpX1 = p0.x + (p1.x - p0.x) / 2;
+                    const cpY1 = p0.y;
+                    const cpX2 = p0.x + (p1.x - p0.x) / 2;
+                    const cpY2 = p1.y;
+                    d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
+                }
+                spPath.setAttribute('d', d);
+                
+                // Area background gradient fill
+                const bgPath = `${d} L ${points[points.length - 1].x} 100 L ${points[0].x} 100 Z`;
+                spPathBg.setAttribute('d', bgPath);
+            }
+
+            // Draw interactive point circles
+            spPoints.innerHTML = '';
+            points.forEach(p => {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", p.x);
+                circle.setAttribute("cy", p.y);
+                circle.setAttribute("class", `sparkline-point ${p.sentiment}`);
+                
+                // Hover interactive tooltips
+                circle.addEventListener('mouseover', (e) => {
+                    const rect = spSvg.getBoundingClientRect();
+                    const tooltipX = p.x * (rect.width / 260);
+                    const tooltipY = p.y * (rect.height / 100);
+                    
+                    spTooltip.style.left = `${tooltipX}px`;
+                    spTooltip.style.top = `${tooltipY}px`;
+                    const previewText = this.escapeHtml(p.text.length > 40 ? p.text.substring(0, 40) + '…' : p.text);
+                    const sentimentColor = p.sentiment === 'positivo' ? '#34d399' : p.sentiment === 'negativo' ? '#f87171' : '#a1a1aa';
+                    spTooltip.innerHTML = `
+                        <div style="font-weight: 700; margin-bottom: 2px;">Mensaje #${p.index + 1}</div>
+                        <div style="color: var(--text-secondary); margin-bottom: 4px;">"${previewText}"</div>
+                        <div style="font-weight: 600; color: ${sentimentColor}">
+                            Ánimo: ${this.escapeHtml(p.sentiment.toUpperCase())}
+                        </div>
+                    `;
+                    spTooltip.style.opacity = '1';
+                    spTooltip.style.transform = 'translate(-50%, -110%) scale(1)';
+                });
+                
+                circle.addEventListener('mouseout', () => {
+                    spTooltip.style.opacity = '0';
+                    spTooltip.style.transform = 'translate(-50%, -110%) scale(0.95)';
+                });
+
+                spPoints.appendChild(circle);
+            });
+        }
+
+        // 4. Clinical Recommendations Block
+        guidance.className = `dashboard-widget widget-guidance risk-${currentRisk}`;
+        if (currentRisk === 'alto') {
+            guidanceContent.innerHTML = `
+                <p><strong>¡Alerta Crítica!</strong> Se ha identificado un nivel de riesgo emocional alto en la conversación. Por favor, no cargues con esto a solas. Comunícate de inmediato con la línea de ayuda profesional gratuita para recibir apoyo humano y calificado.</p>
+                <a href="tel:106" class="guidance-call-btn">
+                    <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Llamar Línea de Apoyo (106)
+                </a>
+            `;
+        } else if (currentRisk === 'medio') {
+            guidanceContent.innerHTML = `
+                <p><strong>Atención Recomendada:</strong> Se han detectado emociones intensas de tristeza, estrés o desespero. Te sugerimos tomar una pequeña pausa del entorno digital, respirar profundamente e intentar hablar de esto con un amigo, familiar o un orientador cercano.</p>
+            `;
+        } else {
+            guidanceContent.innerHTML = `
+                <p><strong>Todo marcha estable.</strong> Sigue expresando tus pensamientos de manera segura. SentiaGuard vela por tu privacidad y tu bienestar en cada mensaje. Recuerda que siempre es un buen momento para autocuidarte.</p>
+            `;
+        }
     }
 }
 
