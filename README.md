@@ -2,10 +2,10 @@
 
 Este proyecto es una evolución del chatbot original, transformado en un sistema de análisis de sentimiento y detección de riesgo emocional para redes sociales y entornos digitales.
 
-## 🎯 Objetivo
+##  Objetivo
 Detectar proactivamente estados emocionales negativos o situaciones de riesgo en los textos de los usuarios y proporcionar respuestas de apoyo adecuadas al nivel de riesgo detectado.
 
-## ⚙️ Cambios Realizados (Refactorización)
+##  Cambios Realizados (Refactorización)
 1.  **Nuevo Módulo NLP (`nlp_engine.py`):** Se implementó una lógica de procesamiento de lenguaje natural basada en reglas y palabras clave para clasificar sentimientos y niveles de riesgo.
 2.  **Backend Flask (`app.py`):** Se simplificó el backend eliminando la dependencia de Ollama/RAG para asegurar un MVP funcional inmediato, manteniendo la estructura de rutas y gestión de sesiones.
 3.  **Interfaz de Usuario (`index.html`, `chat.js`, `styles.css`):** 
@@ -14,7 +14,7 @@ Detectar proactivamente estados emocionales negativos o situaciones de riesgo en
     *   Se implementaron animaciones de alerta para casos de riesgo alto.
 4.  **Privacidad:** Se eliminó cualquier almacenamiento persistente de datos personales, cumpliendo con el requisito de no usar bases de datos.
 
-## 🏗️ Estructura del Proyecto
+##  Estructura del Proyecto
 ```text
 /
 ├── app.py              # Servidor Flask (Rutas y lógica principal)
@@ -27,7 +27,7 @@ Detectar proactivamente estados emocionales negativos o situaciones de riesgo en
 └── test_mental_health.py # Pruebas unitarias del sistema
 ```
 
-## 🚀 Instrucciones de Ejecución
+##  Instrucciones de Ejecución
 1.  Asegúrate de tener Python instalado.
 2.  Instala las dependencias necesarias:
     ```bash
